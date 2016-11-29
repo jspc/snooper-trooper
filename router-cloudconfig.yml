@@ -1,0 +1,79 @@
+#cloud-config
+
+coreos:
+
+  groups:
+    - vpn
+
+  users:
+    - name: jspc
+      gecos: jspc
+      primary-group: vpn
+      groups: wheel
+      lock_passwd: true
+      passwd: $6$rounds=8192$4mYBGvUKZbA$OeK1eNJj1grmVZr12N905plh8r6Qx0lFO6ba8Lq20B7DfGf79.bxhpnEHhuUd19giUa6Wm6LHhtrfwKybaK9q.
+
+  write_files:
+    # Use freedns: https://freedns.zone/en/ - Spanish DNS service,
+    # no logging, no ads
+    - path: "/etc/resolv.conf"
+      permissions: "0644"
+      owner: "root"
+      content: |
+        nameserver 37.235.1.174
+        nameserver 37.235.1.177
+
+  units:
+  - name: tor-container.service
+    command: start
+    content: |
+      [Unit]
+      Description=Tor Docker
+      Requires=docker.service
+      After=docker.service
+
+      [Service]
+      Restart=always
+      ExecStart=/usr/bin/docker run --net host --restart always --name tor  jess/tor
+      ExecStop=/usr/bin/docker stop -t 2 tor
+      ExecStopPost=/usr/bin/docker rm -f tor
+
+      [Install]
+      WantedBy=default.target
+
+  - name: tor-iptables.service
+    command: start
+    content: |
+      [Unit]
+      Description=setup tor stuff
+      After=tor-container.service
+
+      [Service]
+      Type=oneshot
+      ExecStart=/usr/bin/sh -c "docker ps; \
+        wget https://gist.githubusercontent.com/jspc/4752e9a665e66891371fd8bb45825f3a/raw/28eabb9343cc456cd41916c8a3c17fd3f67bd5ea/iptables.sh -O /tmp/iptables.sh; \
+        chmod +x /tmp/iptables.sh; \
+        /tmp/iptables.sh"
+
+  - name: openvpn.service
+    command: start
+    content: |
+      [Unit]
+      Description=OpenVPN Access Server Container
+      Requires=tor-container.service
+      After=tor-container.service
+
+      [Service]
+      Restart=always
+      ExecPreStart=/usr/bin/docker create --name=openvpn-as \
+                                   -v /config:/config \
+                                   --net=host --privileged \
+                                   - e INTERFACE=all \
+                                   linuxserver/openvpn-as
+      ExecStart=/usr/bin/docker start -a openvpn-as
+
+      ExecStop=/usr/bin/docker stop -t 2  openvpn-as
+      ExecStopPost=/usr/bin/docker rm -f openvpn-as
+
+      [Install]
+      WantedBy=default.target

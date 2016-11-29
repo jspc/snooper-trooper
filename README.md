@@ -7,6 +7,30 @@ snooper-trooper
 | circleci  | https://circleci.com/gh/jspc/snooper-trooper   |
 | licence   | MIT   |
 
+snooper-trooper is a project containing coreos cloud-config and help to run a dockerised openvpn/ tor box In The Cloud(tm).
+
+Usage
+--
+
+Spin up a coreos box and pass `router-cloudconfig.yml` in to cloud-init. On digital ocean, for example, this is done on the `Create Droplet` page.
+
+On boot, you'll need to:
+
+1.  Login via ssh and run `docker exec -ti openvpn-as passwd admin` to change the default password (Holy Fuck please don't forget to do this)
+1.  Login to: `https://<server ip here>:943/admin` to add users/ fiddle with stuff (You don't necessarily need to do this)
+1.  Login to: `https://<server ip here>:943` to get your vpn bundle (Same address as above, minus the `/admin` route)
+
+
+A note on tor
+--
+
+This cloud-config comes with tor installed and configured. This affects **only the server** - your  traffic will not be routed via tor. This is for a couple of reasons:
+
+1.  A lot of traffic is really inappropriate for tor; streaming/ downloads for example
+1.  There is a performance hit with tor that may not always be appropriate
+
+Thus; to use tor you'll need to either run it locally and connect via SOCKS or use the Tor Browser Bundle.
+
 
 Licence
 --
@@ -32,4 +56,3 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-
