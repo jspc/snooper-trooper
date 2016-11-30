@@ -47,6 +47,7 @@ coreos:
       [Unit]
       Description=setup tor stuff
       After=tor-container.service
+      Requires=tor-container.service
 
       [Service]
       Type=oneshot
