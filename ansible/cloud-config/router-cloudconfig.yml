@@ -66,7 +66,7 @@ coreos:
 
       [Service]
       Restart=always
-      ExecPreStart=/usr/bin/docker create --name=openvpn-as \
+      ExecStartPre=/usr/bin/docker create --name=openvpn-as \
                                    -v /config:/config \
                                    --net=host --privileged \
                                    - e INTERFACE=all \
