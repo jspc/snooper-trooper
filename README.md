@@ -12,11 +12,39 @@ snooper-trooper is a project containing coreos cloud-config and help to run a do
 Usage
 --
 
-Spin up a coreos box and pass `router-cloudconfig.yml` in to cloud-init. On digital ocean, for example, this is done on the `Create Droplet` page.
+Firstly, create a new ssh key. This is important for two reasons: digital ocean will barf if you're already using a particular key in your account, where this tool expects to upload the key to get key IDs, and should your instance be compromised while you're logged in you may suffer a ssh agent leak attack.
 
-On boot, you'll need to:
+Thus:
+
+```bash
+$ ssh-keygen
+Generating public/private rsa key pair.
+Enter file in which to save the key (~/.ssh/id_rsa): ~/.ssh/snooper-trooper
+Enter passphrase (empty for no passphrase):
+Enter same passphrase again:
+Your identification has been saved in ~/.ssh/snooper-trooper.
+Your public key has been saved in ~/.ssh/snooper-trooper.pub.
+```
+
+With this in mind:
+
+```bash
+$ ansible-playbook ansible/gateway.yml --extra-vars 'ssh_pub_key_path=~/.ssh/snooper-trooper.pub ssh_prv_key_path=~/.ssh/snooper-trooper'
+```
+
+Any `var` in `ansible/gateway.yml` can be overwritten on the cli with `--extra-vars`. Thus to spin up in the nyc3 region, the above command becomes:
+
+```bash
+$ ansible-playbook ansible/gateway.yml --extra-vars 'ssh_pub_key_path=~/.ssh/snooper-trooper.pub ssh_prv_key_path=~/.ssh/snooper-trooper region_id=nyc3'
+```
+
+Post Install
+--
+
+There are a number of manual steps. This was to avoid having to bootstrap the coreos hosts with python to have the full run of features it expects.
 
 1.  Login via ssh and run `docker exec -ti openvpn-as passwd admin` to change the default password (Holy Fuck please don't forget to do this)
+1.  Delete the firewall rules stopping access to the UI: `/sbin/iptables -D INPUT -p tcp --destination-port 943 -j DROP`
 1.  Login to: `https://<server ip here>:943/admin` to add users/ fiddle with stuff (You don't necessarily need to do this)
 1.  Login to: `https://<server ip here>:943` to get your vpn bundle (Same address as above, minus the `/admin` route)
 
