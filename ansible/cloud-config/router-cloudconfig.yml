@@ -69,7 +69,7 @@ coreos:
       ExecStartPre=/usr/bin/docker create --name=openvpn-as \
                                    -v /config:/config \
                                    --net=host --privileged \
-                                   - e INTERFACE=all \
+                                   -e INTERFACE=all \
                                    linuxserver/openvpn-as
       ExecStart=/usr/bin/docker start -a openvpn-as
 
