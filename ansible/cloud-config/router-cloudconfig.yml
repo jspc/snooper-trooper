@@ -13,15 +13,15 @@ coreos:
       lock_passwd: true
       passwd: $6$rounds=8192$4mYBGvUKZbA$OeK1eNJj1grmVZr12N905plh8r6Qx0lFO6ba8Lq20B7DfGf79.bxhpnEHhuUd19giUa6Wm6LHhtrfwKybaK9q.
 
-  write_files:
-    # Use freedns: https://freedns.zone/en/ - Spanish DNS service,
-    # no logging, no ads
-    - path: "/etc/resolv.conf"
-      permissions: "0644"
-      owner: "root"
-      content: |
-        nameserver 37.235.1.174
-        nameserver 37.235.1.177
+  # write_files:
+  #   # Use freedns: https://freedns.zone/en/ - Spanish DNS service,
+  #   # no logging, no ads
+  #   - path: "/etc/resolv.conf"
+  #     permissions: "0644"
+  #     owner: "root"
+  #     content: |
+  #       nameserver 37.235.1.174
+  #       nameserver 37.235.1.177
 
   units:
   - name: tor-container.service
