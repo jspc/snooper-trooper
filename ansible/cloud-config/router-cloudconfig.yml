@@ -52,7 +52,7 @@ coreos:
       [Service]
       Type=oneshot
       ExecStart=/usr/bin/sh -c "docker ps; \
-        wget https://gist.githubusercontent.com/jspc/4752e9a665e66891371fd8bb45825f3a/raw/28eabb9343cc456cd41916c8a3c17fd3f67bd5ea/iptables.sh -O /tmp/iptables.sh; \
+        wget https://gist.githubusercontent.com/jspc/4752e9a665e66891371fd8bb45825f3a/raw/3bad7f8610942eb41e0cdba96dc74f8c646680cf/iptables.sh -O /tmp/iptables.sh; \
         chmod +x /tmp/iptables.sh; \
         /tmp/iptables.sh"
 
