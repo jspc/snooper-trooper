@@ -1,0 +1,55 @@
+- hosts: localhost
+  connection: local
+
+  vars:
+    image_id: coreos-stable
+    instance_type: 2gb
+    region_id: lon1
+    short_name: router
+    ssh_prv_key_path: "{{ lookup('env', 'HOME') }}/.ssh/id_rsa"
+    ssh_pub_key_path: "{{ lookup('env', 'HOME') }}/.ssh/id_rsa.pub"
+    userdata: "{{ lookup('file', 'cloud-config/router-cloudconfig.yml') }}"
+
+  tasks:
+    - digital_ocean:
+        state: present
+        command: ssh
+        name: snooper-trooper
+        ssh_pub_key: "{{ lookup('file', ssh_pub_key_path) }}"
+      register: ssh_key
+
+    - digital_ocean:
+        state: present
+        command: droplet
+        image_id: "{{ image_id }}"
+        name: "{{ short_name }}-{{ region_id }}"
+        region_id: "{{ region_id }}"
+        size_id: "{{ instance_type }}"
+        ssh_key_ids: "{{ ssh_key.ssh_key.id }}"
+        unique_name: yes
+        user_data: "{{ userdata }}"
+        wait_timeout: 300
+      register: router
+
+    - debug:
+        msg: "IP is {{ router.droplet.ip_address }}"
+
+    - name: Add new host to our inventory.
+      add_host:
+        name: "{{router.droplet.ip_address}}"
+        groups: router
+        ansible_ssh_private_key: "{{ ssh_prv_key_path }}"
+        ansible_ssh_user: core
+      when: router.droplet is defined
+
+
+- hosts: router
+  gather_facts: no
+  become: yes
+  tasks:
+    - name: Wait for port 22 to become available.
+      local_action: "wait_for port=22 host={{ inventory_hostname }}"
+
+    # I don't want to have to muck about with bootstrapping, so make everything `raw` commands
+    - raw: "docker restart openvpn-as && sleep 10 && /sbin/iptables -I INPUT 1 -p tcp --destination-port 943 -j DROP"
+    - raw: "systemctl restart tor-iptables.service"
